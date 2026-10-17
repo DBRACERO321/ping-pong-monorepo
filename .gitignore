@@ -17,4 +17,4 @@ npm-debug.log*
 pnpm-debug.log*
 
 # Archivos del SO
-.DS_Store
+.DS_Store.pnpm-store/
