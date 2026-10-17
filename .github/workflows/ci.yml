@@ -1,0 +1,62 @@
+name: CI Monorepo
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Instalar pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Obtener caché de pnpm
+        uses: actions/cache@v3
+        with:
+          path: ~/.local/share/pnpm/store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Instalar dependencias
+        run: pnpm install
+
+      - name: Lint de API (NestJS)
+        run: pnpm --filter api run lint
+
+      - name: Lint de Web (Next.js)
+        run: pnpm --filter web run lint
+
+      - name: Build de API (NestJS)
+        run: pnpm --filter api run build
+
+      - name: Build de Web (Next.js)
+        run: pnpm --filter web run build
+
+  build-docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Probar build de API (Docker)
+        run: docker build -t ping-pong-api -f apps/api/Dockerfile .
+
+      - name: Probar build de Web (Docker)
+        run: docker build -t ping-pong-web -f apps/web/Dockerfile .
