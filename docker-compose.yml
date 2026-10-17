@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    # Sobrescribimos el comando de producción por el de desarrollo
+    command: pnpm --filter api run start:dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Sincroniza la carpeta raíz al contenedor
+      - .:/app
+      # Protegemos los node_modules del contenedor para que no se sobreescriban
+      - /app/node_modules
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    # Sobrescribimos el comando de producción por el de desarrollo
+    command: pnpm --filter web run dev
+    ports: # Expone la web en localhost:8080 (Next.js usa internamente el 3000 por defecto)
+      - "8080:3000"
+    volumes:
+      # Sincroniza la carpeta raíz al contenedor
+      - .:/app
+      # Protegemos directorios internos de Next.js y pnpm
+      - /app/node_modules
+      - /app/apps/web/.next
+    depends_on:
+      - api
