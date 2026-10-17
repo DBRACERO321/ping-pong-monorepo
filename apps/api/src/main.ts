@@ -9,4 +9,7 @@ async function bootstrap() {
 
   await app.listen(3000);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Error arrancando NestJS', err);
+  process.exit(1);
+});
